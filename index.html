@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>台三線 3D 生態博物館</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:system-ui,"Noto Sans TC",sans-serif;background:#b8d3b3;color:#18382f}#scene{position:fixed;inset:0}canvas{display:block}.top{position:fixed;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;pointer-events:none}.brand,.actions,.panel,.hint,.mobile{pointer-events:auto}.brand,.actions button,.panel,.hint{background:#f6f2e8e8;backdrop-filter:blur(12px);border:0;border-radius:16px;padding:12px 15px;box-shadow:0 5px 22px #18382f22}.brand b{display:block}.brand small{font-size:10px;color:#678074}.actions{display:flex;gap:8px}.actions button{font-weight:700;cursor:pointer;color:#18382f}.actions .primary{background:#245e48;color:white}.panel{position:fixed;right:16px;top:88px;width:min(330px,calc(100vw - 32px));padding:18px;line-height:1.7}.panel h2{margin:5px 0}.panel p{font-size:13px;color:#587064}.panel button{border:0;border-radius:10px;background:#2f7655;color:white;padding:10px 14px;cursor:pointer}.panel .close{float:right;background:#e1e9dd;color:#18382f}.hidden{display:none}.hint{position:fixed;left:14px;bottom:14px;font-size:12px}.mobile{display:none;position:fixed;bottom:18px;left:18px;right:18px;justify-content:space-between}.mobile button{border:0;border-radius:50%;width:68px;height:68px;background:#ffffffbb;font-weight:bold;touch-action:none}@media(max-width:700px){.brand{padding:9px 11px}.brand b{font-size:12px}.brand small{font-size:8px}.actions button{font-size:11px;padding:9px}.hint{bottom:155px;font-size:10px}.mobile{display:flex}.panel{top:72px}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+</head><body><div id="scene"></div>
+<header class="top"><div class="brand"><b>🌿 台三線 3D 生態博物館</b><small>TAIWAN ROUTE 3 · ECO MUSEUM</small></div><div class="actions"><button id="map">探索地圖</button><button id="about">關於</button><button class="primary" id="start">進入探索</button></div></header>
+<aside class="panel" id="panel"><button class="close" id="close">×</button><small id="eyebrow">WELCOME · ROUTE 3</small><h2 id="title">沿著台三線，發現山林的故事</h2><p id="desc">從中央聚落出發，穿過山徑與茶園，認識沿線自然環境、客庄文化與地方產業。點擊八座主題入口閱讀故事。</p><button id="action">開始自由探索</button></aside>
+<div class="hint">W A S D 移動・滑鼠拖曳環視・Shift 奔跑<br>靠近主題入口並點擊查看故事</div>
+<div class="mobile"><button id="forward">▲</button><button id="jump">跳躍</button></div>
+<script type="module">
+import * as THREE from 'three';
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xb8d3b3);scene.fog=new THREE.Fog(0xb8d3b3,45,125);
+const camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,250);
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;document.querySelector('#scene').appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xe8f5df,0x718c65,2));const sun=new THREE.DirectionalLight(0xfff0cf,2.2);sun.position.set(-25,35,20);sun.castShadow=true;scene.add(sun);
+const mat=c=>new THREE.MeshStandardMaterial({color:c,roughness:.9});
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(120,120),mat('#83ad70'));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+function orb(x,y,z,s,c){const m=new THREE.Mesh(new THREE.IcosahedronGeometry(s,1),mat(c));m.position.set(x,y,z);m.castShadow=true;scene.add(m)}
+for(let i=0;i<65;i++){let x=(Math.random()-.5)*105,z=(Math.random()-.5)*105;if(Math.hypot(x,z)<12)continue;orb(x,1.7+Math.random(),z,1.1+Math.random(),['#4f8058','#6b9b62','#8ab16d'][i%3]);const t=new THREE.Mesh(new THREE.CylinderGeometry(.12,.18,1.5,7),mat('#916b4b'));t.position.set(x,.75,z);scene.add(t)}
+for(const [x,z,s] of [[-38,-30,17],[35,-35,20],[-40,35,19],[42,32,18],[0,-55,24]])orb(x,4,z,s,'#71966a');
+const road=new THREE.Mesh(new THREE.TorusGeometry(27,1.8,8,100,Math.PI*1.7),mat('#b9aa8b'));road.rotation.x=Math.PI/2;road.position.y=.04;road.scale.set(1.3,.8,1);scene.add(road);
+const islands=[
+['山林生態島','森林分層、原生植物與野生動物的棲地故事。',-23,-12,'🌲','#5f9867'],
+['茶香島','認識茶園地景、採茶與製茶文化。',27,22,'🍃','#729d4d'],
+['客家文化島','透過夥房、飲食、語言與節慶認識客庄生活。',-28,25,'🏡','#b87955'],
+['水源生命島','探索溪流生態、集水區與水資源。',-31,-35,'💧','#5babb2'],
+['農村生活島','從農田四季到食農教育，認識地方產業。',33,-23,'🌾','#c5a45c'],
+['生物多樣性島','觀察昆蟲、鳥類、物種與棲地保護。',5,-45,'🦋','#8a9b5d'],
+['永續未來島','從減碳、循環利用到地方永續行動。',48,1,'♻️','#4d9a83'],
+['台三線地理探索島','認識路線、地形、聚落與真實地景對照。',2,31,'🧭','#9a8668']];
+const gates=[];
+islands.forEach(([name,desc,x,z,icon,color])=>{const base=new THREE.Mesh(new THREE.CylinderGeometry(3.2,3.6,.4,24),mat(color));base.position.set(x,.2,z);scene.add(base);const ring=new THREE.Mesh(new THREE.TorusGeometry(1.55,.2,10,32),new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.2}));ring.position.set(x,2.6,z);scene.add(ring);const postmat=mat('#916b4b');for(const dx of [-1.6,1.6]){const p=new THREE.Mesh(new THREE.BoxGeometry(.25,2.5,.25),postmat);p.position.set(x+dx,1.3,z);scene.add(p)}const label=document.createElement('canvas');label.width=512;label.height=100;const ctx=label.getContext('2d');ctx.fillStyle='#f0e5c8';ctx.fillRect(0,0,512,100);ctx.fillStyle='#244c39';ctx.font='bold 38px sans-serif';ctx.textAlign='center';ctx.fillText(icon+' '+name,256,65);const sign=new THREE.Mesh(new THREE.PlaneGeometry(3.2,.65),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(label)}));sign.position.set(x,3.4,z+.1);scene.add(sign);gates.push({ring,name,desc})});
+const player=new THREE.Group();const body=new THREE.Mesh(new THREE.CapsuleGeometry(.45,.9,5,10),mat('#397b68'));body.position.y=1;player.add(body);const head=new THREE.Mesh(new THREE.SphereGeometry(.36,16,12),mat('#e7bd91'));head.position.y=1.85;player.add(head);player.position.set(0,0,11);scene.add(player);
+let yaw=0,pitch=.22,vy=0,grounded=true,drag=false,lastX=0,lastY=0;const keys={};addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true);addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+renderer.domElement.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'){drag=true;lastX=e.clientX;lastY=e.clientY}});addEventListener('pointerup',()=>drag=false);addEventListener('pointermove',e=>{if(drag){yaw-=(e.clientX-lastX)*.006;pitch=THREE.MathUtils.clamp(pitch+(e.clientY-lastY)*.003,-.05,.65);lastX=e.clientX;lastY=e.clientY}});
+let mobileForward=false;document.querySelector('#forward').onpointerdown=()=>mobileForward=true;document.querySelector('#forward').onpointerup=()=>mobileForward=false;document.querySelector('#jump').onpointerdown=()=>{if(grounded){vy=7;grounded=false}};
+const panel=document.querySelector('#panel');function show(title,desc){document.querySelector('#eyebrow').textContent='DISCOVER · ECO ISLAND';document.querySelector('#title').textContent=title;document.querySelector('#desc').textContent=desc;document.querySelector('#action').textContent='返回探索';document.querySelector('#action').onclick=()=>panel.classList.add('hidden');panel.classList.remove('hidden')}
+document.querySelector('#close').onclick=()=>panel.classList.add('hidden');document.querySelector('#start').onclick=()=>panel.classList.add('hidden');
+document.querySelector('#about').onclick=()=>show('一條公路，串起山林與庄頭','本館以台三線沿線地理、自然生態、客家文化與地方產業為靈感。這是互動概念原型，地形與道路為示意，尚非精確測繪成果。');
+document.querySelector('#map').onclick=()=>show('八大主題探索區',islands.map((d,i)=>(i+1)+'. '+d[0]+'｜'+d[1]).join('\n'));
+const ray=new THREE.Raycaster(),pointer=new THREE.Vector2();renderer.domElement.addEventListener('click',e=>{if(drag)return;pointer.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);ray.setFromCamera(pointer,camera);const hit=ray.intersectObjects(gates.map(g=>g.ring));if(hit.length){const g=gates.find(g=>g.ring===hit[0].object);show(g.name,g.desc)}});
+let last=performance.now();function animate(now){requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.04);last=now;let f=(keys.w||keys.arrowup||mobileForward?1:0)-(keys.s||keys.arrowdown?1:0),s=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),len=Math.hypot(f,s);if(len>1){f/=len;s/=len}const speed=keys.shift?8:5;player.position.x+=(-Math.sin(yaw)*f+Math.cos(yaw)*s)*speed*dt;player.position.z+=(-Math.cos(yaw)*f-Math.sin(yaw)*s)*speed*dt;player.position.x=THREE.MathUtils.clamp(player.position.x,-55,55);player.position.z=THREE.MathUtils.clamp(player.position.z,-55,55);vy-=18*dt;player.position.y+=vy*dt;if(player.position.y<0){player.position.y=0;vy=0;grounded=true}const target=new THREE.Vector3(player.position.x+Math.sin(yaw)*9,player.position.y+4.4+pitch*4,player.position.z+Math.cos(yaw)*9);camera.position.lerp(target,1-Math.pow(.001,dt));camera.lookAt(player.position.x,player.position.y+1,player.position.z);gates.forEach(g=>g.ring.rotation.z=Math.sin(now*.0015)*.08);renderer.render(scene,camera)}camera.position.set(0,6,22);requestAnimationFrame(animate);
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+</script></body></html>
